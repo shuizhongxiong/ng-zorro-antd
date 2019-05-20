@@ -1,17 +1,26 @@
+/**
+ * @license
+ * Copyright Alibaba.com All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/NG-ZORRO/ng-zorro-antd/blob/master/LICENSE
+ */
+
 import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
+import { IndexableObject } from '../types/indexable';
 import { isNotNil } from '../util/check';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class NzMeasureScrollbarService {
   private _scrollbarWidth: number;
-  private scrollbarMeasure = {
+  private scrollbarMeasure: IndexableObject = {
     position: 'absolute',
-    top     : '-9999px',
-    width   : '50px',
-    height  : '50px',
+    top: '-9999px',
+    width: '50px',
+    height: '50px',
     overflow: 'scroll'
   };
 
@@ -27,7 +36,7 @@ export class NzMeasureScrollbarService {
     const scrollDiv = this.document.createElement('div');
     for (const scrollProp in this.scrollbarMeasure) {
       if (this.scrollbarMeasure.hasOwnProperty(scrollProp)) {
-        scrollDiv.style[ scrollProp ] = this.scrollbarMeasure[ scrollProp ];
+        scrollDiv.style[scrollProp] = this.scrollbarMeasure[scrollProp];
       }
     }
     this.document.body.appendChild(scrollDiv);

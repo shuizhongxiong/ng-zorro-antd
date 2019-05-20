@@ -1,74 +1,81 @@
-import { Component, OnInit } from '@angular/core';
-import { NzFormatEmitEvent, NzTreeNode } from 'ng-zorro-antd';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { NzFormatEmitEvent, NzTreeComponent, NzTreeNodeOptions } from 'ng-zorro-antd';
 
 @Component({
   selector: 'nz-demo-tree-basic',
   template: `
     <nz-tree
-      [(ngModel)]="nodes"
-      [nzCheckable]="true"
-      [nzMultiple]="true"
-      [nzDefaultExpandedKeys]="expandKeys"
-      [nzDefaultCheckedKeys]="checkedKeys"
-      [nzDefaultSelectedKeys]="selectedKeys"
-      [nzDefaultExpandAll]="expandDefault"
-      (nzClick)="mouseAction('click',$event)"
-      (nzDblClick)="mouseAction('dblclick', $event)"
+      #nzTreeComponent
+      [nzData]="nodes"
+      nzCheckable
+      [nzCheckedKeys]="defaultCheckedKeys"
+      [nzExpandedKeys]="defaultExpandedKeys"
+      [nzSelectedKeys]="defaultSelectedKeys"
+      (nzClick)="nzClick($event)"
+      (nzCheckBoxChange)="nzCheck($event)"
+      (nzExpandChange)="nzCheck($event)"
     >
-    </nz-tree>`
+    </nz-tree>
+  `
 })
+export class NzDemoTreeBasicComponent implements OnInit, AfterViewInit {
+  @ViewChild('nzTreeComponent') nzTreeComponent: NzTreeComponent;
+  defaultCheckedKeys = ['10020'];
+  defaultSelectedKeys = ['10010'];
+  defaultExpandedKeys = ['100', '1001'];
 
-export class NzDemoTreeBasicComponent implements OnInit {
-  expandKeys = [ '1001', '10001' ];
-  checkedKeys = [ '100011', '1002' ];
-  selectedKeys = [ '10001', '100011' ];
-  expandDefault = false;
-  nodes = [
-    new NzTreeNode({
-      title   : 'root1',
-      key     : '1001',
+  nodes: NzTreeNodeOptions[] = [
+    {
+      title: 'parent 1',
+      key: '100',
       children: [
         {
-          title   : 'child1',
-          key     : '10001',
+          title: 'parent 1-0',
+          key: '1001',
+          disabled: true,
           children: [
-            {
-              title : 'child1.1',
-              key   : '100011',
-              isLeaf: true
-            },
-            {
-              title : 'child1.2',
-              key   : '100012',
-              isLeaf: true
-            }
+            { title: 'leaf 1-0-0', key: '10010', disableCheckbox: true, isLeaf: true },
+            { title: 'leaf 1-0-1', key: '10011', isLeaf: true }
           ]
         },
         {
-          title   : 'child2',
-          key     : '10002',
+          title: 'parent 1-1',
+          key: '1002',
           children: [
-            {
-              title   : 'grandchild1.2.1',
-              key     : '1000121',
-              isLeaf  : true,
-              disabled: true
-            },
-            {
-              title : 'grandchild1.2.2',
-              key   : '1000122',
-              isLeaf: true
-            }
+            { title: 'leaf 1-1-0', key: '10020', isLeaf: true },
+            { title: 'leaf 1-1-1', key: '10021', isLeaf: true }
           ]
         }
       ]
-    })
+    }
   ];
 
-  mouseAction(name: string, event: NzFormatEmitEvent): void {
-    console.log(name, event);
+  nzClick(event: NzFormatEmitEvent): void {
+    console.log(event);
+  }
+
+  nzCheck(event: NzFormatEmitEvent): void {
+    console.log(event);
+  }
+
+  // nzSelectedKeys change
+  nzSelect(keys: string[]): void {
+    console.log(keys, this.nzTreeComponent.getSelectedNodeList());
   }
 
   ngOnInit(): void {
+    // TODO something
+  }
+
+  ngAfterViewInit(): void {
+    // get node by key: '10011'
+    console.log(this.nzTreeComponent.getTreeNodeByKey('10011'));
+    // use tree methods
+    console.log(
+      this.nzTreeComponent.getTreeNodes(),
+      this.nzTreeComponent.getCheckedNodeList(),
+      this.nzTreeComponent.getSelectedNodeList(),
+      this.nzTreeComponent.getExpandedNodeList()
+    );
   }
 }

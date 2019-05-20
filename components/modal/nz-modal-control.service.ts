@@ -1,3 +1,11 @@
+/**
+ * @license
+ * Copyright Alibaba.com All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/NG-ZORRO/ng-zorro-antd/blob/master/LICENSE
+ */
+
 import { Injectable, Optional, SkipSelf } from '@angular/core';
 import { Subject, Subscription } from 'rxjs';
 
@@ -13,26 +21,24 @@ interface RegisteredMeta {
 export class NzModalControlService {
   // Track singleton afterAllClose through over the injection tree
   get afterAllClose(): Subject<void> {
-    return this.parentService ? this.parentService.afterAllClose : this.rootAfterAllClose;
+    return this.parentService ? this.parentService.afterAllClose : this.rootAfterAllClose!;
   }
 
   // Track singleton openModals array through over the injection tree
   get openModals(): NzModalRef[] {
-    return this.parentService ? this.parentService.openModals : this.rootOpenModals;
+    return this.parentService ? this.parentService.openModals : this.rootOpenModals!;
   }
 
-  private rootOpenModals: NzModalRef[] = this.parentService ? null : [];
-  private rootAfterAllClose: Subject<void> = this.parentService ? null : new Subject<void>();
+  private rootOpenModals: NzModalRef[] | null = this.parentService ? null : [];
+  private rootAfterAllClose: Subject<void> | null = this.parentService ? null : new Subject<void>();
+  private rootRegisteredMetaMap: Map<NzModalRef, RegisteredMeta> | null = this.parentService ? null : new Map();
 
-  private rootRegisteredMetaMap: Map<NzModalRef, RegisteredMeta> = this.parentService ? null : new Map();
-
-  private get registeredMetaMap(): Map<NzModalRef, RegisteredMeta> { // Registered modal for later usage
-    return this.parentService ? this.parentService.registeredMetaMap : this.rootRegisteredMetaMap;
+  private get registeredMetaMap(): Map<NzModalRef, RegisteredMeta> {
+    // Registered modal for later usage
+    return this.parentService ? this.parentService.registeredMetaMap : this.rootRegisteredMetaMap!;
   }
 
-  constructor(
-    @Optional() @SkipSelf() private parentService: NzModalControlService) {
-  }
+  constructor(@Optional() @SkipSelf() private parentService: NzModalControlService) {}
 
   // Register a modal to listen its open/close
   registerModal(modalRef: NzModalRef): void {
@@ -44,8 +50,17 @@ export class NzModalControlService {
     }
   }
 
-  // TODO: allow deregister modals
-  // deregisterModal(modalRef: NzModalRef): void {}
+  // deregister modals
+  deregisterModal(modalRef: NzModalRef): void {
+    const registeredMeta = this.registeredMetaMap.get(modalRef);
+    if (registeredMeta) {
+      // Remove this modal if it is still in the opened modal list (NOTE: it may trigger "afterAllClose")
+      this.removeOpenModal(registeredMeta.modalRef);
+      registeredMeta.afterOpenSubscription.unsubscribe();
+      registeredMeta.afterCloseSubscription.unsubscribe();
+      this.registeredMetaMap.delete(modalRef);
+    }
+  }
 
   hasRegistered(modalRef: NzModalRef): boolean {
     return this.registeredMetaMap.has(modalRef);
@@ -56,7 +71,7 @@ export class NzModalControlService {
     let i = this.openModals.length;
 
     while (i--) {
-      this.openModals[ i ].close();
+      this.openModals[i].close();
     }
   }
 
